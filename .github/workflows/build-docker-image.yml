@@ -1,138 +1,121 @@
----
-  name: Build SSHD Container
-  
-  permissions: 
-    packages: write
-    repository-projects: write
-    contents: write
-    id-token: write
-    pull-requests: write    
-  
-  concurrency: 
-    group: ${{ github.workflow }}
-    cancel-in-progress: true
-  
-  on:
-    push:
-      branches:
-        - main
+name: Build SSHD Container
 
-  env:
-    AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
-    DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-  
-  jobs:
-    build:
-      runs-on: ubuntu-latest
-  
-      steps:
-        - name: Checkout the repo
-          uses: actions/checkout@v2
-  
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v1
-  
-        - uses: thefringeninja/action-minver@2.0.0-preview1
-          id: minver
-          with:
-            # Optional. Specifies which part of the version to auto-increment.
-            auto-increment: patch
-            # Optional. Sets custom build metadata for your semantic version.
-            # build-metadata: ${{ github.sha }}
-            # Optional. Specifies the default pre-release phase.
-            default-pre-release-phase: preview
-            # Optional. Specifies the minimum version to use when no tags exist.
-            minimum-major-minor: 0.0
-            # Optional. Specifies the prefix of the tags
-            tag-prefix: v
-            # Optional. Specifies the log level.
-            verbosity: info
+permissions: 
+  packages: write
+  repository-projects: write
+  contents: write
+  id-token: write
+  pull-requests: write    
 
-        - name: Set tags variable
-          id: set-tags
-          env:
-            AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
-            DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-            GITHUB_PACKAGES_USERNAME: ${{ vars._GITHUB_PACKAGES_USERNAME }}
-            GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
-          run: |
-            tags=""
-            if [ "${{ env.GITHUB_PACKAGES_PASSWORD }}" != "" ]; then
-              tags="${tags},'ghcr.io/${{ vars._GITHUB_PACKAGES_USERNAME }}/sshd'"
-            fi
-            if [ "${{ env.AZURECR_PASSWORD }}" != "" ]; then
-              tags="${tags},'${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd'"
-            fi
-            if [ "${{ env.DOCKER_HUB_PASSWORD }}" != "" ]; then
-              tags="${tags},'docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd'"
-            fi
-            formatted_tags="${tags:1}"
-            echo -e "[$formatted_tags]" > tags.txt
-            echo "::set-output name=tags::$(cat tags.txt)"
-            cat tags.txt
+concurrency: 
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
 
+on:
+  push:
+    branches:
+      - main
 
-                
-        - name: Format output
-          id: format-output
-          run: |
-            echo "images=$(echo "${{ toJson(fromJson(steps.set-tags.outputs.tags)) }}" | jq -r '. | join("\n")')" >> $GITHUB_ENV
+env:
+  AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
+  DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+  GITHUB_PACKAGES_USERNAME: ${{ secrets.GITHUB_PACKAGES_USERNAME }}
+  GITHUB_PACKAGES_PASSWORD: ${{ secrets.GITHUB_PACKAGES_PASSWORD }}
+  AZURECR_REGISTRY_NAME: ${{ vars.AZURECR_REGISTRY_NAME }}
+  AZURECR_USERNAME: ${{ vars.AZURECR_USERNAME }}
+  DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
 
-        - name: Docker meta
-          id: meta
-          uses: docker/metadata-action@v5
-          with:
-            images: ${{ steps.format-output.outputs.images }}
-            flavor: |
-              latest=auto
-            labels: |
-              org.opencontainers.image.version=${{ steps.minver.outputs.version }}
-              org.opencontainers.image.licenses=MIT
-              org.opencontainers.image.description=A Docker image for an OpenSSH server
-            tags: |
-              type=raw,value=latest
-              type=ref,event=pr
-              type=ref,event=tag
-              type=raw,value=${{ steps.minver.outputs.version }}
-              type=sha,format=long,pattern={{sha}},prefix=
-              type=sha,format=short,prefix=
-              type=schedule
-              type=schedule,pattern=nightly
-              type=schedule,pattern={{date 'YYYYMMDD'}}
-  
-        - name: Login GitHub Container Registry
-          uses: docker/login-action@v3
-          with:
-            registry: ghcr.io
-            username: ${{ vars._GITHUB_PACKAGES_USERNAME }}
-            password: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
-  
-        - name: Login Azure Container Registry
-          if: env.AZURECR_PASSWORD != ''
-          uses: docker/login-action@v3
-          with:
-            registry: ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io
-            username: ${{ vars.AZURECR_USERNAME }}
-            password: ${{ secrets.AZURECR_PASSWORD }}
-  
-        - name: Login Docker Hub Registry
-          if: env.DOCKER_HUB_PASSWORD != ''
-          uses: docker/login-action@v3
-          with:
-            username: ${{ vars.DOCKER_HUB_USERNAME }}
-            password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-        - name: Build & push the Docker image
-          uses: docker/build-push-action@v6.7.0
-          with:
-            context: .
-            pull: true
-            push: true
-            tags: ${{ steps.meta.outputs.tags }}
-            labels: ${{ steps.meta.outputs.labels }}
-            file: Dockerfile
-            platforms: linux/amd64,linux/arm64
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
-            annotations: ${{ steps.meta.outputs.annotations }}
-  
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - uses: thefringeninja/action-minver@2.0.0-preview1
+        id: minver
+        with:
+          auto-increment: patch
+          default-pre-release-phase: preview
+          minimum-major-minor: 0.0
+          tag-prefix: v
+          verbosity: info
+
+      - name: Set tags variable
+        id: set-tags
+        run: |
+          tags=""
+          if [ "${GITHUB_PACKAGES_PASSWORD}" != "" ]; then
+            tags="${tags}ghcr.io/${GITHUB_PACKAGES_USERNAME}/sshd\n"
+          fi
+          if [ "${AZURECR_PASSWORD}" != "" ]; then
+            tags="${tags}${AZURECR_REGISTRY_NAME}.azurecr.io/sshd\n"
+          fi
+          if [ "${DOCKER_HUB_PASSWORD}" != "" ]; then
+            tags="${tags}docker.io/${DOCKER_HUB_USERNAME}/sshd\n"
+          fi
+          tags="${tags%\\n}" # Remove trailing newline
+          echo "tags=${tags}" >> $GITHUB_ENV
+          echo "::set-output name=tags::${tags}"
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.set-tags.outputs.tags }}
+          flavor: |
+            latest=auto
+          labels: |
+            org.opencontainers.image.version=${{ steps.minver.outputs.version }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.description=A Docker image for an OpenSSH server
+          tags: |
+            type=raw,value=latest
+            type=ref,event=pr
+            type=ref,event=tag
+            type=raw,value=${{ steps.minver.outputs.version }}
+            type=sha,format=long,pattern={{sha}},prefix=
+            type=sha,format=short,prefix=
+            type=schedule
+            type=schedule,pattern=nightly
+            type=schedule,pattern={{date 'YYYYMMDD'}}
+
+      - name: Login GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ env.GITHUB_PACKAGES_USERNAME }}
+          password: ${{ env.GITHUB_PACKAGES_PASSWORD }}
+
+      - name: Login Azure Container Registry
+        if: env.AZURECR_PASSWORD != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io
+          username: ${{ env.AZURECR_USERNAME }}
+          password: ${{ env.AZURECR_PASSWORD }}
+
+      - name: Login Docker Hub Registry
+        if: env.DOCKER_HUB_PASSWORD != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ env.DOCKER_HUB_PASSWORD }}
+
+      - name: Build & push the Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          pull: true
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          annotations: ${{ steps.meta.outputs.annotations }}
