@@ -65,7 +65,8 @@
             if [ "${{ env.DOCKER_HUB_PASSWORD }}" != "" ]; then
               tags=",'${tags}docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd'"
             fi
-            echo -e "[${$tags:1}]" > tags.txt
+            formatted_tags="${tags:1}"
+            echo -e "[$formatted_tags]" > tags.txt
             echo "::set-output name=tags::$(cat tags.txt)"
 
         - name: Docker meta
