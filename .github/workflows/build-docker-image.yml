@@ -57,15 +57,15 @@
           run: |
             tags=""
             if [ "${{ secrets._GITHUB_PACKAGES_PASSWORD }}" != "" ]; then
-              tags="${tags}ghcr.io/${{ vars._GITHUB_PACKAGES_USERNAME }}/sshd\n"
+              tags=",'${tags}ghcr.io/${{ vars._GITHUB_PACKAGES_USERNAME }}/sshd'"
             fi
             if [ "${{ env.AZURECR_PASSWORD }}" != "" ]; then
-              tags="${tags}${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd\n"
+              tags=",'${tags}${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd',"
             fi
             if [ "${{ env.DOCKER_HUB_PASSWORD }}" != "" ]; then
-              tags="${tags}docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd\n"
+              tags=",'${tags}docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd'"
             fi
-            echo -e "$tags" > tags.txt
+            echo -e "[${$tags:1}]" > tags.txt
             echo "::set-output name=tags::$(cat tags.txt)"
 
         - name: Docker meta
@@ -73,7 +73,7 @@
           uses: docker/metadata-action@v5
           with:
             images: |
-              ${{ steps.set-tags.outputs.tags }}
+              ${{ join(fromJson(steps.set-tags.outputs.tags), '\n') }}
             flavor: |
               latest=auto
             labels: |
