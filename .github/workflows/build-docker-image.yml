@@ -71,11 +71,18 @@
             echo "::set-output name=tags::$(cat tags.txt)"
             cat tags.txt
 
+
+                
+        - name: Format output
+          id: format-output
+          run: |
+            echo "images=$(echo "${{ toJson(fromJson(steps.set-tags.outputs.tags)) }}" | jq -r '. | join("\n")')" >> $GITHUB_ENV
+
         - name: Docker meta
           id: meta
           uses: docker/metadata-action@v5
           with:
-            images: ${{ format(join(fromJson(steps.set-tags.outputs.tags), '{0}'), '\n') }}
+            images: ${{ steps.format-output.outputs.images }}
             flavor: |
               latest=auto
             labels: |
