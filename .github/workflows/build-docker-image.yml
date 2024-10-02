@@ -51,7 +51,7 @@
               REGISTRY="$REGISTRY ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
             fi
             if [ "${{ vars.DOCKER_HUB_USERNAME }}" != "" ] && [ "${{ secrets.DOCKER_HUB_PASSWORD }}" != "" ]; then
-              REGISTRY="$REGISTRY docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
+              REGISTRY="$REGISTRY registry.docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
             fi
             echo "REGISTRY=$REGISTRY" >> $GITHUB_ENV
             echo "::tags name=registry::$REGISTRY"
@@ -98,7 +98,7 @@
           if: ${{ vars.DOCKER_HUB_USERNAME != '' && env.DOCKER_HUB_PASSWORD != '' }}
           uses: docker/login-action@v3
           with:
-            registry: docker.io
+            registry: registry.docker.io
             username: ${{ vars.DOCKER_HUB_USERNAME }}
             password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
