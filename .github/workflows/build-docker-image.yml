@@ -62,8 +62,8 @@
             if [ "${{ vars.DOCKER_HUB_USERNAME }}" != "" ] && [ "$DOCKER_HUB_PASSWORD" != "" ]; then
               IMAGES="$IMAGES docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
             fi
-            echo "IMAGES=$IMAGES" >> $GITHUB_ENV
-            echo "::set-output name=images::$IMAGES"
+            echo "IMAGES=$(echo $IMAGES | tr ' ' '\n')" >> $GITHUB_ENV
+            echo "::set-output name=images::$(echo $IMAGES | tr ' ' '\n')"
   
         - name: Docker meta
           id: meta
