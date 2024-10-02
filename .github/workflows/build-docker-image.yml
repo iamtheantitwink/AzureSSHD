@@ -19,7 +19,7 @@ on:
 env:
   AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-  GITHUB_PACKAGES_USERNAME: ${{ secrets._GITHUB_PACKAGES_USERNAME }}
+  GITHUB_PACKAGES_USERNAME: ${{ vars._GITHUB_PACKAGES_USERNAME }}
   GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
   AZURECR_REGISTRY_NAME: ${{ vars.AZURECR_REGISTRY_NAME }}
   AZURECR_USERNAME: ${{ vars.AZURECR_USERNAME }}
@@ -50,13 +50,13 @@ jobs:
         run: |
           tags_json=""
           if [ "${GITHUB_PACKAGES_PASSWORD}" != "" ]; then
-            tags_json="$tags_json,ghcr.io/${{ env._GITHUB_PACKAGES_USERNAME }}/sshd"
+            tags_json="$tags_json,'ghcr.io/${{ env.GITHUB_PACKAGES_USERNAME }}/sshd'"
           fi
           if [ "${AZURECR_PASSWORD}" != "" ]; then
-            tags_json="$tags_json,${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
+            tags_json="$tags_json,'${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd'"
           fi
           if [ "${DOCKER_HUB_PASSWORD}" != "" ]; then
-            tags_json="$tags_json,docker.io/${{ env.DOCKER_HUB_USERNAME }}/sshd"
+            tags_json="$tags_json,'docker.io/${{ env.DOCKER_HUB_USERNAME }}/sshd'"
           fi
           tags_json=${tags_json:1}
           tags_json="[$tags_json]"
