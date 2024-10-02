@@ -57,7 +57,7 @@
           run: |
             tags=""
             if [ "${{ secrets._GITHUB_PACKAGES_PASSWORD }}" != "" ]; then
-              tags="${tags}ghcr.io/${{ vars.GITHUB_PACKAGES_USERNAME }}/sshd\n"
+              tags="${tags}ghcr.io/${{ vars._GITHUB_PACKAGES_USERNAME }}/sshd\n"
             fi
             if [ "${{ env.AZURECR_PASSWORD }}" != "" ]; then
               tags="${tags}${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd\n"
