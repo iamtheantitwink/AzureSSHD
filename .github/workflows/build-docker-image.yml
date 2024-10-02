@@ -48,44 +48,32 @@
             # Optional. Specifies the log level.
             verbosity: info
 
-        - name: Images
-          id: ghcr-image
+        - name: Set tags variable
+          id: set-tags
+          env:
+            AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
+            DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+            GITHUB_PACKAGES_USERNAME: ${{ vars._GITHUB_PACKAGES_USERNAME }}
           run: |
-            echo "GHCR_IMAGE=ghcr.io/${{ github.repository_owner }}/sshd" >> $GITHUB_ENV
-            echo "::set-output name=ghcr_image::ghcr.io/${{ github.repository_owner }}/sshd"
-
-        - name: Images
-          id: azurecr-image
-          run: |
-            echo "AZURECR_IMAGE=${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" >> $GITHUB_ENV
-            echo "::set-output name=images::${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
-
-        - name: Images
-          id: docker-image
-          run: |
-            echo "DOCKER_IMAGE=docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd" >> $GITHUB_ENV
-            echo "::set-output name=images::docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
-
-        - name: Images
-          id: images
-          run: |
-            echo "IMAGES=ghcr.io/${{ github.repository_owner }}/sshd"
-            if [ "${{ env.AZURECR_PASSWORD != '' }}" ]; then
-              echo "IMAGES=$IMAGES\
-            ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" >> $GITHUB_ENV
+            tags=""
+            if [ "${{ secrets._GITHUB_PACKAGES_PASSWORD }}" != "" ]; then
+              tags="${tags}ghcr.io/${{ vars.GITHUB_PACKAGES_USERNAME }}/sshd\n"
             fi
-            if [ "${{ env.DOCKER_HUB_PASSWORD != '' }}" ]; then
-              echo "IMAGES=$IMAGES\
-            docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd" >> $GITHUB_ENV
+            if [ "${{ env.AZURECR_PASSWORD }}" != "" ]; then
+              tags="${tags}${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd\n"
             fi
-            echo "::set-output name=images::$IMAGES"
+            if [ "${{ env.DOCKER_HUB_PASSWORD }}" != "" ]; then
+              tags="${tags}docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd\n"
+            fi
+            echo -e "$tags" > tags.txt
+            echo "::set-output name=tags::$(cat tags.txt)"
 
         - name: Docker meta
           id: meta
           uses: docker/metadata-action@v5
           with:
             images: |
-              ${{ env.IMAGES }}
+              ${{ steps.set-tags.outputs.tags }}
             flavor: |
               latest=auto
             labels: |
