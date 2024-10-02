@@ -64,6 +64,7 @@ jobs:
           echo "$tags_json" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           echo "::set-output name=tags_json::$tags_json"
+          echo $tags_json
 
       - name: Docker meta
         id: meta
