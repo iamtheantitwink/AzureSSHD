@@ -59,15 +59,15 @@ jobs:
             tags="${tags} docker.io/${DOCKER_HUB_USERNAME}/sshd"
           fi
           tags="${tags# }" # Remove leading space
-          tags_array=$(echo ${tags} | tr ' ' '\n')
-          echo "tags_array=${tags_array}" >> $GITHUB_ENV
-          echo "::set-output name=tags::$(echo ${tags_array} | jq -R -s -c 'split("\n")')"
+          tags=$(echo ${tags} | tr ' ' '\n')
+          echo "TAGS=\"${tags}\"" >> $GITHUB_ENV
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ steps.set-tags.outputs.tags }}
+          images: |
+            ${{ steps.set-tags.outputs.tags }}
           flavor: |
             latest=auto
           labels: |
