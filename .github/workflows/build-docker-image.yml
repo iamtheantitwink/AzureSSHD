@@ -54,9 +54,10 @@
             AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
             DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
             GITHUB_PACKAGES_USERNAME: ${{ vars._GITHUB_PACKAGES_USERNAME }}
+            GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
           run: |
             tags=""
-            if [ "${{ secrets._GITHUB_PACKAGES_PASSWORD }}" != "" ]; then
+            if [ "${{ env.GITHUB_PACKAGES_PASSWORD }}" != "" ]; then
               tags="${tags},'ghcr.io/${{ vars._GITHUB_PACKAGES_USERNAME }}/sshd'"
             fi
             if [ "${{ env.AZURECR_PASSWORD }}" != "" ]; then
@@ -74,7 +75,7 @@
           id: meta
           uses: docker/metadata-action@v5
           with:
-            images: ${{ fromJson(steps.set-tags.outputs.tags) }}
+            images: ${{ format(join(fromJson(steps.set-tags.outputs.tags), '{0}'), '\n') }}
             flavor: |
               latest=auto
             labels: |
