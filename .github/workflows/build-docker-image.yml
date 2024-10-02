@@ -1,11 +1,6 @@
 name: Build SSHD Container
 
-permissions:
-  packages: write
-  repository-projects: write
-  contents: write
-  id-token: write
-  pull-requests: write    
+permissions: write-all   
 
 concurrency:
   group: ${{ github.workflow }}
@@ -19,13 +14,13 @@ on:
 env:
   AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-  GITHUB_PACKAGES_USERNAME: ${{ secrets._GITHUB_PACKAGES_USERNAME }}
-  GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
-  GITHUB_PACKAGES_NAMESPACE: ${{ vars._GITHUB_PACKAGES_NAMESPACE }}
+  GITHUB_PACKAGES_USERNAME: ${{ secrets._GITHUB_PACKAGES_USERNAME || github.repository_owner }}
+  GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD || secrets.GITHUB_TOKEN }}
+  GITHUB_PACKAGES_NAMESPACE: ${{ vars._GITHUB_PACKAGES_NAMESPACE || vars._GITHUB_PACKAGES_USERNAME || github.repository_owner }}
   AZURECR_REGISTRY_NAME: ${{ vars.AZURECR_REGISTRY_NAME }}
   AZURECR_USERNAME: ${{ vars.AZURECR_USERNAME }}
   DOCKER_HUB_USERNAME: ${{ vars.DOCKER_HUB_USERNAME }}
-  GHCR_TAG: ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE }}/sshd
+  GHCR_TAG: ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE || vars._GITHUB_PACKAGES_USERNAME || github.repository_owner }}/sshd
   AZURECR_TAG: ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd
   DOCKER_TAG: docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd
 
