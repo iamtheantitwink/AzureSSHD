@@ -49,26 +49,6 @@ jobs:
           tag-prefix: v
           verbosity: info
 
-      - name: Set and output tags variable
-        id: set-tags
-        run: |
-          tags_json="[]"
-          if [ "${GITHUB_PACKAGES_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq --arg tag "ghcr.io/${{ env.GITHUB_PACKAGES_NAMESPACE }}/sshd" '. + [$tag]')
-          fi
-          if [ "${AZURECR_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq --arg tag "${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" '. + [$tag]')
-          fi
-          if [ "${DOCKER_HUB_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq --arg tag "docker.io/${{ env.DOCKER_HUB_USERNAME }}/sshd" '. + [$tag]')
-          fi
-
-          # Write the JSON to the GITHUB_ENV file
-          echo "TAGS_JSON=$tags_json" >> $GITHUB_ENV
-          
-          # Also, set the output for further steps
-          echo "::set-output name=tags_json::$tags_json"
-
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
