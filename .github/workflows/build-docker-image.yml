@@ -48,16 +48,18 @@ jobs:
       - name: Set and output tags variable
         id: set-tags
         run: |
-          tags_json="[]"
+          tags_json=""
           if [ "${GITHUB_PACKAGES_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq --arg tag "ghcr.io/${{ env.GITHUB_PACKAGES_USERNAME }}/sshd" '. + [$tag]')
+            tags_json="$tags_json,ghcr.io/${{ env._GITHUB_PACKAGES_USERNAME }}/sshd"
           fi
           if [ "${AZURECR_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq --arg tag "${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" '. + [$tag]')
+            tags_json="$tags_json,${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
           fi
           if [ "${DOCKER_HUB_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq --arg tag "docker.io/${{ env.DOCKER_HUB_USERNAME }}/sshd" '. + [$tag]')
+            tags_json="$tags_json,docker.io/${{ env.DOCKER_HUB_USERNAME }}/sshd"
           fi
+          tags_json=${tags_json:1}
+          tags_json="[$tags_json]"
           echo "TAGS_JSON<<EOF" >> $GITHUB_ENV
           echo "$tags_json" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
