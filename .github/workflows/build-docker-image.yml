@@ -93,7 +93,7 @@
             password: ${{ secrets.GITHUB_TOKEN }}
   
         - name: Login Azure Container Registry
-          if: ${{ vars.AZURECR_REGISTRY_NAME != '' && vars.AZURECR_USERNAME != '' && env.AZURECR_PASSWORD != '' }}
+          if: env.AZURECR_PASSWORD != ''
           uses: docker/login-action@v3
           with:
             registry: ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io
@@ -101,7 +101,7 @@
             password: ${{ secrets.AZURECR_PASSWORD }}
   
         - name: Login Docker Hub Registry
-          if: ${{ vars.DOCKER_HUB_USERNAME != '' && env.DOCKER_HUB_PASSWORD != '' }}
+          if: env.DOCKER_HUB_PASSWORD != ''
           uses: docker/login-action@v3
           with:
             username: ${{ vars.DOCKER_HUB_USERNAME }}
