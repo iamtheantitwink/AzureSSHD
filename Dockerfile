@@ -13,3 +13,5 @@ RUN apt-get update \
 COPY sshd_config /etc/ssh/
 
 EXPOSE 8080 2222
+
+CMD [ "/start-sshd" ]
