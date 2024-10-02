@@ -50,20 +50,21 @@
   
         - name: Set images variable
           id: set-images
+          shell: pwsh
           env:
             AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
             DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
             GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
           run: |
-            IMAGES="ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE }}/sshd"
-            if [ "${{ vars.AZURECR_REGISTRY_NAME }}" != "" ] && [ "${{ vars.AZURECR_USERNAME }}" != "" ] && [ "$AZURECR_PASSWORD" != "" ]; then
-              IMAGES="$IMAGES ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
+            $IMAGES="ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE }}/sshd"
+            if [ "$env:AZURECR_PASSWORD" != "" ]; then
+              $IMAGES="$IMAGES\n${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
             fi
-            if [ "${{ vars.DOCKER_HUB_USERNAME }}" != "" ] && [ "$DOCKER_HUB_PASSWORD" != "" ]; then
-              IMAGES="$IMAGES docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
+            if [ "$env:DOCKER_HUB_PASSWORD" != "" ]; then
+              $IMAGES="$IMAGES\ndocker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
             fi
-            echo "IMAGES=$(echo $IMAGES | tr ' ' '\n')" >> $GITHUB_ENV
-            echo "::set-output name=images::$(echo $IMAGES | tr ' ' '\n')"
+            Write-Output "IMAGES=$IMAGES" >> $GITHUB_ENV
+            Write-Output "::set-output name=images::$IMAGES"
   
         - name: Docker meta
           id: meta
