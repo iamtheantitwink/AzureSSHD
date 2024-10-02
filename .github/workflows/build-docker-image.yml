@@ -47,32 +47,19 @@
             tag-prefix: v
             # Optional. Specifies the log level.
             verbosity: info
-  
-        - name: Set images variable
-          id: set-images
-          shell: pwsh
-          env:
-            AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
-            DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-            GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
+
+        - name: Images
+          id: images
           run: |
-            $IMAGES="ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE }}/sshd"
-            if ("$env:AZURECR_PASSWORD" -ne "")
-            {
-              $IMAGES="$IMAGES`n${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
-            }
-            if ("$env:DOCKER_HUB_PASSWORD" -ne "")
-            {
-              $IMAGES="$IMAGES`ndocker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
-            }
-            Write-Output "IMAGES=$IMAGES" >> $GITHUB_ENV
-            Write-Output "::set-output name=images::$IMAGES"
+            echo "::set-output name=images::ghcr.io/${{ github.repository_owner }}/sshd"
+            echo "::set-output name=images::${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
+            echo "::set-output name=images::docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
   
         - name: Docker meta
           id: meta
           uses: docker/metadata-action@v5
           with:
-            images: ${{ steps.set-images.outputs.images }}
+            images: ${{ steps.images.outputs.images }}
             flavor: |
               latest=auto
             labels: |
