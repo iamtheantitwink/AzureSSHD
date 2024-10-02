@@ -19,7 +19,7 @@ on:
 env:
   AZURECR_PASSWORD: ${{ secrets.AZURECR_PASSWORD }}
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-  GITHUB_PACKAGES_USERNAME: ${{ vars._GITHUB_PACKAGES_USERNAME }}
+  GITHUB_PACKAGES_USERNAME: ${{ secrets._GITHUB_PACKAGES_USERNAME }}
   GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
   AZURECR_REGISTRY_NAME: ${{ vars.AZURECR_REGISTRY_NAME }}
   AZURECR_USERNAME: ${{ vars.AZURECR_USERNAME }}
@@ -50,23 +50,24 @@ jobs:
         run: |
           tags_json="[]"
           if [ "${GITHUB_PACKAGES_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq '. + ["ghcr.io/${{ env.GITHUB_PACKAGES_USERNAME }}/sshd"]')
+            tags_json=$(echo $tags_json | jq --arg tag "ghcr.io/${{ env.GITHUB_PACKAGES_USERNAME }}/sshd" '. + [$tag]')
           fi
           if [ "${AZURECR_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq '. + ["${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"]')
+            tags_json=$(echo $tags_json | jq --arg tag "${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" '. + [$tag]')
           fi
           if [ "${DOCKER_HUB_PASSWORD}" != "" ]; then
-            tags_json=$(echo $tags_json | jq '. + ["docker.io/${{ env.DOCKER_HUB_USERNAME }}/sshd"]')
+            tags_json=$(echo $tags_json | jq --arg tag "docker.io/${{ env.DOCKER_HUB_USERNAME }}/sshd" '. + [$tag]')
           fi
-          # Escape JSON for GitHub Actions environment file format
-          echo "TAGS_JSON=$tags_json" >> $GITHUB_ENV
+          echo "TAGS_JSON<<EOF" >> $GITHUB_ENV
+          echo "$tags_json" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           echo "::set-output name=tags_json::$tags_json"
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ steps.set-tags.outputs.tags_json }}
+          images: ${{ fromJson(steps.set-tags.outputs.tags_json) }}
           flavor: |
             latest=auto
           labels: |
@@ -88,8 +89,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ secrets.GITHUB_PACKAGES_USERNAME }}
-          password: ${{ secrets.GITHUB_PACKAGES_PASSWORD }}
+          username: ${{ secrets._GITHUB_PACKAGES_USERNAME }}
+          password: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
 
       - name: Login Azure Container Registry
         if: ${{ env.AZURECR_PASSWORD != '' }}
