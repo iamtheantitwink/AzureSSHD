@@ -68,6 +68,7 @@
             formatted_tags="${tags:1}"
             echo -e "[$formatted_tags]" > tags.txt
             echo "::set-output name=tags::$(cat tags.txt)"
+            cat tags.txt
 
         - name: Docker meta
           id: meta
