@@ -39,28 +39,28 @@
             # Optional. Specifies the minimum version to use when no tags exist.
             minimum-major-minor: 0.0
             # Optional. Specifies the prefix of the tags
-            tag-prefix: ${{ inputs.tag-prefix }}
+            tag-prefix: v
             # Optional. Specifies the log level.
             verbosity: info
   
-        - name: Set registry variable
-          id: set-tags
+        - name: Set images variable
+          id: set-images
           run: |
-            REGISTRY="ghcr.io/${{ github.repository_owner }}/sshd"
+            IMAGES="ghcr.io/${{ github.repository_owner }}/sshd"
             if [ "${{ vars.AZURECR_REGISTRY_NAME }}" != "" ] && [ "${{ vars.AZURECR_USERNAME }}" != "" ] && [ "${{ secrets.AZURECR_PASSWORD }}" != "" ]; then
-              REGISTRY="$REGISTRY ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
+              IMAGES="$IMAGES ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
             fi
             if [ "${{ vars.DOCKER_HUB_USERNAME }}" != "" ] && [ "${{ secrets.DOCKER_HUB_PASSWORD }}" != "" ]; then
-              REGISTRY="$REGISTRY registry.docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
+              IMAGES="$IMAGES registry.docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
             fi
-            echo "REGISTRY=$REGISTRY" >> $GITHUB_ENV
-            echo "::tags name=registry::$REGISTRY"
+            echo "IMAGES=$IMAGES" >> $GITHUB_ENV
+            echo "::set-output name=images::$IMAGES"
   
         - name: Docker meta
           id: meta
           uses: docker/metadata-action@v5
           with:
-            images: ${{ steps.set-tags.outputs.tags }}
+            images: ${{ steps.set-images.outputs.images }}
             flavor: |
               latest=auto
             labels: |
@@ -107,7 +107,6 @@
             context: .
             pull: true
             push: true
-            images: ${{ steps.set-tags.outputs.tags }}
             tags: ${{ steps.meta.outputs.tags }}
             labels: ${{ steps.meta.outputs.labels }}
             file: Dockerfile
