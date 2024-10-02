@@ -90,8 +90,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ secrets.GITHUB_PACKAGES_USERNAME }}
-          password: ${{ secrets.GITHUB_PACKAGES_PASSWORD }}
+          username: ${{ secrets._GITHUB_PACKAGES_USERNAME }}
+          password: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
 
       - name: Login Azure Container Registry
         if: ${{ env.AZURECR_PASSWORD != '' }}
