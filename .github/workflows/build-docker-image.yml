@@ -32,10 +32,10 @@ jobs:
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
-  
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-  
+
       - uses: thefringeninja/action-minver@2.0.0-preview1
         id: minver
         with:
@@ -44,31 +44,29 @@ jobs:
           minimum-major-minor: 0.0
           tag-prefix: v
           verbosity: info
-  
+
       - name: Set and output tags variable
         id: set-tags
         run: |
-          tags=""
+          tags=()
           if [ "${GITHUB_PACKAGES_PASSWORD}" != "" ]; then
-            tags="${tags}\nghcr.io/${GITHUB_PACKAGES_USERNAME}/sshd"
+            tags+=("ghcr.io/${GITHUB_PACKAGES_USERNAME}/sshd")
           fi
           if [ "${AZURECR_PASSWORD}" != "" ]; then
-            tags="${tags}\n${AZURECR_REGISTRY_NAME}.azurecr.io/sshd"
+            tags+=("${AZURECR_REGISTRY_NAME}.azurecr.io/sshd")
           fi
           if [ "${DOCKER_HUB_PASSWORD}" != "" ]; then
-            tags="${tags}\ndocker.io/${DOCKER_HUB_USERNAME}/sshd"
+            tags+=("docker.io/${DOCKER_HUB_USERNAME}/sshd")
           fi
-          # Remove leading newline
-          tags="${tags#\\n}"
-          echo "TAGS<<EOF" >> $GITHUB_ENV
-          echo "${tags}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          tags_json=$(printf '%s\n' "${tags[@]}" | jq -R . | jq -s .)
+          echo "tags=$tags_json" >> $GITHUB_ENV
+          echo "::set-output name=tags::$tags_json"
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ steps.set-tags.outputs.tags }}
+          images: ${{ fromJson(steps.set-tags.outputs.tags) }}
           flavor: |
             latest=auto
           labels: |
@@ -85,29 +83,29 @@ jobs:
             type=schedule
             type=schedule,pattern=nightly
             type=schedule,pattern={{date 'YYYYMMDD'}}
-  
+
       - name: Login GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ vars._GITHUB_PACKAGES_USERNAME }}
-          password: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
+          username: ${{ secrets.GITHUB_PACKAGES_USERNAME }}
+          password: ${{ secrets.GITHUB_PACKAGES_PASSWORD }}
 
       - name: Login Azure Container Registry
         if: ${{ env.AZURECR_PASSWORD != '' }}
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.AZURECR_REGISTRY_NAME }}.azurecr.io
-          username: ${{ env.AZURECR_USERNAME }}
-          password: ${{ env.AZURECR_PASSWORD }}
-  
+          registry: ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io
+          username: ${{ vars.AZURECR_USERNAME }}
+          password: ${{ secrets.AZURECR_PASSWORD }}
+
       - name: Login Docker Hub Registry
         if: ${{ env.DOCKER_HUB_PASSWORD != '' }}
         uses: docker/login-action@v3
         with:
-          username: ${{ env.DOCKER_HUB_USERNAME }}
-          password: ${{ env.DOCKER_HUB_PASSWORD }}
-  
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
       - name: Build & push the Docker image
         uses: docker/build-push-action@v3
         with:
