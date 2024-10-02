@@ -78,6 +78,7 @@
               echo "IMAGES=$IMAGES\
             docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd" >> $GITHUB_ENV
             fi
+            echo "::set-output name=images::$IMAGES
 
         - name: Docker meta
           id: meta
