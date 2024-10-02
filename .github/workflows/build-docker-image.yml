@@ -57,9 +57,9 @@
             GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
           run: |
             $IMAGES="ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE }}/sshd"
-            if ("$env:AZURECR_PASSWORD" != "")
+            if ("$env:AZURECR_PASSWORD" -neq "")
               $IMAGES="$IMAGES\n${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
-            if ("$env:DOCKER_HUB_PASSWORD" != "")
+            if ("$env:DOCKER_HUB_PASSWORD" -neq "")
               $IMAGES="$IMAGES\ndocker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
             Write-Output "IMAGES=$IMAGES" >> $GITHUB_ENV
             Write-Output "::set-output name=images::$IMAGES"
