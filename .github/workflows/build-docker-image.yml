@@ -55,18 +55,15 @@
             DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
             GITHUB_PACKAGES_PASSWORD: ${{ secrets._GITHUB_PACKAGES_PASSWORD }}
           run: |
-            echo "ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE }}/sshd" > images
+            IMAGES="ghcr.io/${{ vars._GITHUB_PACKAGES_NAMESPACE }}/sshd"
             if [ "${{ vars.AZURECR_REGISTRY_NAME }}" != "" ] && [ "${{ vars.AZURECR_USERNAME }}" != "" ] && [ "$AZURECR_PASSWORD" != "" ]; then
-              echo "${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" >> images
+              IMAGES="$IMAGES ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
             fi
             if [ "${{ vars.DOCKER_HUB_USERNAME }}" != "" ] && [ "$DOCKER_HUB_PASSWORD" != "" ]; then
-              echo "docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd" >> images
+              IMAGES="$IMAGES docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
             fi
-            while IFS= read -r line; do
-              echo "IMAGES=$line" >> $GITHUB_ENV
-            done < images
-            images=$(cat images | tr ' ' '\n')
-            echo "::set-output name=images::$images"
+            echo "IMAGES=$IMAGES" >> $GITHUB_ENV
+            echo "::set-output name=images::$IMAGES"
   
         - name: Docker meta
           id: meta
