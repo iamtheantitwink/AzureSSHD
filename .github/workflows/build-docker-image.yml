@@ -59,7 +59,7 @@
             while IFS= read -r line; do
               echo "IMAGES=$line" >> $GITHUB_ENV
             done < images
-            images=$(cat images | tr '\n' ' ')
+            images=$(cat images | tr ' ' '\n')
             echo "::set-output name=images::$images"
   
         - name: Docker meta
@@ -75,7 +75,6 @@
               org.opencontainers.image.description=A Docker image for an OpenSSH server
             tags: |
               type=raw,value=latest
-              type=ref,event=branch
               type=ref,event=pr
               type=ref,event=tag
               type=raw,value=${{ steps.minver.outputs.version }}
