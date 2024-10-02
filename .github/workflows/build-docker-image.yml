@@ -49,17 +49,42 @@
             verbosity: info
 
         - name: Images
+          id: ghcr-image
+          run: |
+            echo "GHCR_IMAGE=ghcr.io/${{ github.repository_owner }}/sshd" >> $GITHUB_ENV
+            echo "::set-output name=ghcr_image::ghcr.io/${{ github.repository_owner }}/sshd"
+
+        - name: Images
+          id: azurecr-image
+          run: |
+            echo "AZURECR_IMAGE=${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" >> $GITHUB_ENV
+            echo "::set-output name=images::${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
+
+        - name: Images
+          id: docker-image
+          run: |
+            echo "DOCKER_IMAGE=docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd" >> $GITHUB_ENV
+            echo "::set-output name=images::docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
+
+        - name: Images
           id: images
           run: |
-            echo "::set-output name=images::ghcr.io/${{ github.repository_owner }}/sshd"
-            echo "::set-output name=images::${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
-            echo "::set-output name=images::docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
-  
+            echo "IMAGES=ghcr.io/${{ github.repository_owner }}/sshd"
+            if [ "${{ env.AZURECR_PASSWORD != '' }}" ]; then
+              echo "IMAGES=$IMAGES\
+            ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" >> $GITHUB_ENV
+            fi
+            if [ "${{ env.DOCKER_HUB_PASSWORD != '' }}" ]; then
+              echo "IMAGES=$IMAGES\
+            docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd" >> $GITHUB_ENV
+            fi
+
         - name: Docker meta
           id: meta
           uses: docker/metadata-action@v5
           with:
-            images: ${{ steps.images.outputs.images }}
+            images: |
+              ${{ env.IMAGES }}
             flavor: |
               latest=auto
             labels: |
