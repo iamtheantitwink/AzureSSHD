@@ -46,14 +46,14 @@
         - name: Set images variable
           id: set-images
           run: |
-            IMAGES="ghcr.io/${{ github.repository_owner }}/sshd"
+            echo "IMAGES=ghcr.io/${{ github.repository_owner }}/sshd" > images
             if [ "${{ vars.AZURECR_REGISTRY_NAME }}" != "" ] && [ "${{ vars.AZURECR_USERNAME }}" != "" ] && [ "${{ secrets.AZURECR_PASSWORD }}" != "" ]; then
-              IMAGES="$IMAGES ${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd"
+              echo "${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd" >> images
             fi
             if [ "${{ vars.DOCKER_HUB_USERNAME }}" != "" ] && [ "${{ secrets.DOCKER_HUB_PASSWORD }}" != "" ]; then
-              IMAGES="$IMAGES registry.docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd"
+              echo "docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd" >> images
             fi
-            echo "IMAGES=$IMAGES" >> $GITHUB_ENV
+            cat images >> $GITHUB_ENV
             echo "::set-output name=images::$IMAGES"
   
         - name: Docker meta
