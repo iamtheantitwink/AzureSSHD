@@ -60,7 +60,7 @@ jobs:
           fi
           tags="${tags# }" # Remove leading space
           tags=$(echo ${tags} | tr ' ' '\n')
-          echo "TAGS=\"${tags}\"" >> $GITHUB_ENV
+          echo "TAGS=${tags}" >> $GITHUB_ENV
           cat $GITHUB_ENV
 
       - name: Docker meta
