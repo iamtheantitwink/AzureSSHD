@@ -57,13 +57,13 @@
           run: |
             tags=""
             if [ "${{ secrets._GITHUB_PACKAGES_PASSWORD }}" != "" ]; then
-              tags=",'${tags}ghcr.io/${{ vars._GITHUB_PACKAGES_USERNAME }}/sshd'"
+              tags="${tags},'ghcr.io/${{ vars._GITHUB_PACKAGES_USERNAME }}/sshd'"
             fi
             if [ "${{ env.AZURECR_PASSWORD }}" != "" ]; then
-              tags=",'${tags}${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd',"
+              tags="${tags},'${{ vars.AZURECR_REGISTRY_NAME }}.azurecr.io/sshd'"
             fi
             if [ "${{ env.DOCKER_HUB_PASSWORD }}" != "" ]; then
-              tags=",'${tags}docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd'"
+              tags="${tags},'docker.io/${{ vars.DOCKER_HUB_USERNAME }}/sshd'"
             fi
             formatted_tags="${tags:1}"
             echo -e "[$formatted_tags]" > tags.txt
