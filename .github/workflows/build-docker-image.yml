@@ -74,8 +74,7 @@
           id: meta
           uses: docker/metadata-action@v5
           with:
-            images: |
-              ${{ join(fromJson(steps.set-tags.outputs.tags), fromJson('\n')) }}
+            images: ${{ fromJson(steps.set-tags.outputs.tags) }}
             flavor: |
               latest=auto
             labels: |
